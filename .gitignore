@@ -1,0 +1,8 @@
+*
+!.gitignore
+!.gitmodules
+!Makefile
+!assimp
+!src
+!*.cpp
+!*.h
