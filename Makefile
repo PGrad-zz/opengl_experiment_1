@@ -3,7 +3,7 @@ KHR_INCLUDE=include/KHR
 GLM_INCLUDE=include/glm
 ASSIMP_INCLUDE=include/assimp
 STB_INCLUDE=include/stb
-CXXFLAGS=-std=gnu++17 -pedantic -I$(GLAD_INCLUDE) -I$(KHR_INCLUDE) -I$(GLM_INCLUDE) -I$(ASSIMP_INCLUDE) -I$(STB_INCLUDE)
+CXXFLAGS=-std=gnu++17 -pedantic -O3 -I$(GLAD_INCLUDE) -I$(KHR_INCLUDE) -I$(GLM_INCLUDE) -I$(ASSIMP_INCLUDE) -I$(STB_INCLUDE)
 LDFLAGS =-ldl -lGL `pkg-config --static --libs glfw3` `pkg-config --static --libs assimp`
 OBJS=$(addprefix objs/, $(addsuffix .o, Shader Mesh Model objects glad))
 all: objs GL01
