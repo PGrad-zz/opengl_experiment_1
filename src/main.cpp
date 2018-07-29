@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+#include "glad.h"
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <stdexcept>
@@ -6,6 +6,7 @@
 #include <fstream>
 #include <typeinfo>
 #include "objects.h"
+#include "Shader.h"
 
 typedef unsigned int VBOid;
 typedef unsigned int Shaderid;
@@ -95,55 +96,15 @@ private:
     }
   }
 
-  Shaderid loadShader(int shadertype, char const * shaderSrc) {
-    Shaderid shader = glCreateShader(shadertype);
-    glShaderSource(shader, 1, &shaderSrc, nullptr);
-    glCompileShader(shader);
-    GLint success;
-    char infoLog[512];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if(!success) {
-      glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-      throw std::runtime_error((shadertype == GL_VERTEX_SHADER ? "Vertex Shader: " : "Fragment Shader: ") + std::string(infoLog));
-    }
-    return shader;
-  }
-
   unsigned int initShaders() {
-    unsigned int shaderProgram = glCreateProgram();
-    Shaderid vertexShader = loadShader(GL_VERTEX_SHADER, read_shader("shaders/vertex.glsl").c_str());
-    Shaderid fragmentShader = loadShader(GL_FRAGMENT_SHADER, read_shader("shaders/fragment.glsl").c_str());
-    GLint success;
-    char infoLog[512];
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if(!success) {
-      glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-      throw std::runtime_error(infoLog);
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    return shaderProgram;
+    Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl");
+    shader.use();
+    return shader.ID;
   }
 
   void register_input(int key, int action, void (*handler)(GLFWwindow * window)) {
     if(glfwGetKey(window, key) == action)
       handler(window);
-  }
-  std::string read_shader(char const * shaderfilename) {
-    std::ifstream input(shaderfilename, std::ifstream::in);
-    if(!input.is_open())
-      throw std::runtime_error("Cannot open file: " + std::string(shaderfilename));
-    std::string shaderdata = "";
-    static int const bufsiz = 256;
-    char c;
-    while(input.good()) {
-      input.get(c);
-      shaderdata += c;
-    }
-    return shaderdata;
   }
 };
 

@@ -1,8 +1,15 @@
 *
 !.gitignore
 !.gitmodules
+!dependencies
+!dependencies/assimp
+!dependencies/glfw
 !Makefile
 !assimp
+!glfw
+!include
+!include/glad.h
+!include/stb
 !src
 !*.cpp
 !*.h

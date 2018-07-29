@@ -4,7 +4,7 @@
 
 Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 {
-    unsigned int ID = glCreateProgram();
+    ID = glCreateProgram();
     Shaderid vertexShader = loadShader(GL_VERTEX_SHADER, read_shader(vertexPath).c_str());
     Shaderid fragmentShader = loadShader(GL_FRAGMENT_SHADER, read_shader(fragmentPath).c_str());
     GLint success;
