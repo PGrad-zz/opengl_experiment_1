@@ -3,10 +3,12 @@
 #include "Shader.h"
 #include "Mesh.h"
 #include <map>
+#include <assimp/scene.h>
 class Model {
 public:
     /* Functions */
-    Model(char *path)
+    Model() {}
+    Model(char const *path)
     {
         loadModel(path);
     }
