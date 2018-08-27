@@ -2,6 +2,9 @@
 layout(triangles) in;
 layout(triangle_strip, max_vertices=3) out;
 
+uniform mat4 proj;
+uniform float disp;
+
 in VS_OUT {
     vec3 position;
     vec2 texCoords;
@@ -16,8 +19,8 @@ out GS_OUT {
 
 void main() {
     for(int i = 0; i < 3; ++i) {
-      gl_Position = gl_in[i].gl_Position + vec4(gs_in[i].normal, 0);
-      gs_out.position = gs_in[i].position + gs_in[i].normal;
+      gs_out.position = gs_in[i].position + gs_in[i].normal * disp;
+      gl_Position = proj * vec4(gs_out.position, 1.);
       gs_out.texCoords = gs_in[i].texCoords;
       gs_out.normal = gs_in[i].normal;
       EmitVertex();

@@ -21,6 +21,7 @@ public:
       glfwSetup();
       initWindow();
       initGLAD();
+      disp = 0;
       model[3][3] = 1;
       model = glm::translate(model, glm::vec3(0., 0., 0.));
       camera = glm::vec3(13.f);
@@ -50,6 +51,8 @@ private:
   glm::mat4 projection;
   glm::vec3 light;
   glm::vec3 camera;
+  float disp;
+  int frame_count;
   int const screenWidth = 800, screenHeight = 600;
   std::vector<Model> foreground;
 
@@ -110,6 +113,7 @@ private:
     shader.setMat4("proj", projection);
     shader.setVec3("lightPos", light);
     shader.setVec3("eye", camera);
+    shader.setFloat("disp", disp);
   }
 
   void mainloop(Model & ground, std::vector<Model> & foreground, Shader & shader) {
@@ -129,6 +133,8 @@ private:
 
       glfwSwapBuffers(window);
       glfwPollEvents();
+      disp = .005 * cos(frame_count / 40. * 3.1459);
+      ++frame_count;
     }
   }
 
