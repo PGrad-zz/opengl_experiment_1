@@ -1,5 +1,3 @@
 Goals for this experiment:
-
-1. loading meshes from 3rd party modeler
-
-2. creating shapes of apparent high polycount from low polycount shapes with tessellation and geometry shaders.
+Generating shadows by ? methods:
+1. Render to texture view from light, and bake the texture on the ground

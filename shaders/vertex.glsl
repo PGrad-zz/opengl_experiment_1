@@ -7,10 +7,16 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
-out vec2 texCoords;
+out VS_OUT {
+    vec3 position;
+    vec2 texCoords;
+		vec3 normal;
+} vs_out;
 
 void main()
 {
-    texCoords = aTexCoords;
+    vs_out.texCoords = aTexCoords;
+    vs_out.normal = aNormal;
+    vs_out.position = (view * vec4(aPos, 1.)).xyz;
     gl_Position = proj * view * vec4(aPos, 1.);
 }
