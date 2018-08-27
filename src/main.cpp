@@ -23,14 +23,17 @@ public:
       initGLAD();
       model[3][3] = 1;
       model = glm::translate(model, glm::vec3(0., 0., 0.));
-      view = glm::lookAt(glm::vec3(0., 20., 10.),
-                         glm::vec3(0., 10., 0.),
+      camera = glm::vec3(13.f);
+      view = glm::lookAt(camera,
+                         glm::vec3(0., 7.5, 0.),
                          glm::vec3(0., 1., 0.));
       projection = glm::perspective(glm::radians(60.f), ((float) screenWidth) / screenHeight, .1f, 100.f);
-      Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl");
+      light = glm::vec3(-10.f, 4.f, 4.f);
+      Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl", "shaders/geometry.glsl");
       shader.use();
-      Model crysis_model("models/nanosuit.obj");
-      mainloop(crysis_model, shader);
+      Model ground("models/plane.obj");
+      load_foreground();
+      mainloop(ground, foreground, shader);
     } catch(std::runtime_error e) {
       std::cerr << e.what() << std::endl;
     }
@@ -45,7 +48,16 @@ private:
   glm::mat4 model;
   glm::mat4 view;
   glm::mat4 projection;
+  glm::vec3 light;
+  glm::vec3 camera;
   int const screenWidth = 800, screenHeight = 600;
+  std::vector<Model> foreground;
+
+  void load_foreground() {
+    if(foreground.size() != 0)
+      return; //Nothing to load
+    foreground.emplace_back("models/nanosuit/nanosuit.obj");
+  }
   
   void glfwSetup() {
     if(!glfwInit())
@@ -93,12 +105,14 @@ private:
   }
 
   void setUniforms(Shader const & shader) {
-      glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(glGetUniformLocation(shader.ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
-      glUniformMatrix4fv(glGetUniformLocation(shader.ID, "proj"), 1, GL_FALSE, glm::value_ptr(projection)); 
+    shader.setMat4("model", model);
+    shader.setMat4("view", view);
+    shader.setMat4("proj", projection);
+    shader.setVec3("lightPos", light);
+    shader.setVec3("eye", camera);
   }
 
-  void mainloop(Model & model, Shader & shader) {
+  void mainloop(Model & ground, std::vector<Model> & foreground, Shader & shader) {
     while(!glfwWindowShouldClose(window)) {
       register_input(GLFW_KEY_ESCAPE, GLFW_PRESS,
         [] (GLFWwindow * window) {
@@ -107,9 +121,11 @@ private:
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glEnable(GL_DEPTH_TEST);
 
-      setUniforms(shader);
-      glUseProgram(shader.ID);
-      model.Draw(shader);
+      for(Model & model : foreground) {
+          setUniforms(shader);
+          glUseProgram(shader.ID);
+          model.Draw(shader);
+      }
 
       glfwSwapBuffers(window);
       glfwPollEvents();

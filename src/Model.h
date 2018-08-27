@@ -1,5 +1,6 @@
 #include <assimp/Importer.hpp>
 #include <iostream>
+#include <memory>
 #include "Shader.h"
 #include "Mesh.h"
 #include <map>
@@ -7,9 +8,10 @@
 class Model {
 public:
     /* Functions */
-    Model() {}
+    Model() = delete;
     Model(char const *path)
     {
+        importer.reset(new Assimp::Importer());
         loadModel(path);
     }
     void Draw(Shader shader);
@@ -19,7 +21,7 @@ private:
     std::vector<Mesh> meshes;
     std::string directory;
     /*Singletons*/
-    Assimp::Importer importer;
+    std::shared_ptr<Assimp::Importer> importer;
     /* Functions */
     void loadModel(std::string path);
     void processNode(aiNode *node, const aiScene *scene);
