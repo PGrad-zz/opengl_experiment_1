@@ -7,9 +7,13 @@
 #include <iostream>
 #include <fstream>
 #include <typeinfo>
+#include <memory>
 #include "objects.h"
 #include "Model.h"
 #include "Shader.h"
+#include "FrameBuffer.h"
+using std::cout;
+using std::endl;
 
 typedef unsigned int VBOid;
 typedef unsigned int Shaderid;
@@ -21,19 +25,19 @@ public:
       glfwSetup();
       initWindow();
       initGLAD();
+      framebuf = std::make_unique<FrameBuffer>();
+      if(!framebuf->loadRenderTex(screenWidth, screenHeight))
+        throw std::runtime_error(std::to_string(glCheckFramebufferStatus(GL_FRAMEBUFFER)));
       model[3][3] = 1;
       model = glm::translate(model, glm::vec3(0., 0., 0.));
-      camera = glm::vec3(13.f);
-      view = glm::lookAt(camera,
-                         glm::vec3(0., 7.5, 0.),
-                         glm::vec3(0., 1., 0.));
+      camera = glm::vec3(0.f, 70.f, 0.f);
+      view = defaultViewMatrix();
       projection = glm::perspective(glm::radians(60.f), ((float) screenWidth) / screenHeight, .1f, 100.f);
-      light = glm::vec3(-10.f, 4.f, 4.f);
-      Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl", "shaders/geometry.glsl");
-      shader.use();
-      Model ground("models/plane.obj");
+      light = glm::vec3(20.f);
+      Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl");
+      Shader rendertex_shader("shaders/vertex.glsl", "shaders/fragment_rendertex.glsl");
       load_foreground();
-      mainloop(ground, foreground, shader);
+      mainloop(square_model, foreground, shader, rendertex_shader);
     } catch(std::runtime_error e) {
       std::cerr << e.what() << std::endl;
     }
@@ -52,6 +56,13 @@ private:
   glm::vec3 camera;
   int const screenWidth = 800, screenHeight = 600;
   std::vector<Model> foreground;
+  std::unique_ptr<FrameBuffer> framebuf;
+
+  glm::mat4 defaultViewMatrix() {
+      return glm::lookAt(camera,
+                         glm::vec3(1., 0., 0.),
+                         glm::vec3(0., 1., 0.));
+  }
 
   void load_foreground() {
     if(foreground.size() != 0)
@@ -112,20 +123,43 @@ private:
     shader.setVec3("eye", camera);
   }
 
-  void mainloop(Model & ground, std::vector<Model> & foreground, Shader & shader) {
+  void drawModels(std::vector<Model> & foreground, Shader & shader) {
+      shader.setInt("ground", 0);
+      for(Model & model : foreground) {
+          setUniforms(shader);
+          model.Draw(shader);
+      }
+  }
+
+  void mainloop(old::Model & ground, std::vector<Model> & foreground, Shader & shader, Shader & rendertex_shader) {
     while(!glfwWindowShouldClose(window)) {
       register_input(GLFW_KEY_ESCAPE, GLFW_PRESS,
         [] (GLFWwindow * window) {
           glfwSetWindowShouldClose(window, true);
       });
+
+      glBindFramebuffer(GL_FRAMEBUFFER, framebuf->getFramebuf());
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glDisable(GL_DEPTH_TEST);
+      rendertex_shader.use();
+      
+      drawModels(foreground, rendertex_shader);
+      
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glEnable(GL_DEPTH_TEST);
+      shader.use();
+      glActiveTexture(GL_TEXTURE0);
+      shader.setInt("framebuf", 0);
+      glBindTexture(GL_TEXTURE_2D, framebuf->getRenderTex());
 
-      for(Model & model : foreground) {
-          setUniforms(shader);
-          glUseProgram(shader.ID);
-          model.Draw(shader);
-      }
+      shader.setInt("ground", 1);
+      setUniforms(shader);
+      setupVAO(ground);
+      glDrawElements(GL_TRIANGLES, ground.indices.size(), GL_UNSIGNED_INT, 0);
+      glBindVertexArray(0);
+
+      //drawModels(foreground, shader);
 
       glfwSwapBuffers(window);
       glfwPollEvents();

@@ -22,10 +22,10 @@ struct old::Model old::get_2nd_triangle() {
 
 struct old::Model old::get_square() {
   return old::Model({
-    -.5, -.5, 0.,
-    .5, -.5, 0.,
-    .5, .5, 0.,
-    -.5, .5, 0.
+    -50., 0., -50.,
+    50., 0., -50.,
+    50., 0., 50.,
+    -50., 0., 50.
   }, {
     0, 1, 3,
     1, 2, 3

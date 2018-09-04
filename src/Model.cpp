@@ -10,9 +10,9 @@ void Model::Draw(Shader shader) {
 }
 
 void Model::loadModel(std::string path) {
-  aiScene const * scene = importer.get()->ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
+  aiScene const * scene = importer->ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
   if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-    throw(std::string("ERROR::ASSIMP::") + importer.get()->GetErrorString() + "\n");
+    throw(std::string("ERROR::ASSIMP::") + importer->GetErrorString() + "\n");
   directory = path.substr(0, path.find_last_of('/'));
   processNode(scene->mRootNode, scene);
 }
