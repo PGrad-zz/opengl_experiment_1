@@ -30,10 +30,10 @@ public:
         throw std::runtime_error(std::to_string(glCheckFramebufferStatus(GL_FRAMEBUFFER)));
       model[3][3] = 1;
       model = glm::translate(model, glm::vec3(0., 0., 0.));
-      camera = glm::vec3(0.f, 70.f, 0.f);
+      camera = glm::vec3(13.f);
       view = defaultViewMatrix();
       projection = glm::perspective(glm::radians(60.f), ((float) screenWidth) / screenHeight, .1f, 100.f);
-      light = glm::vec3(20.f);
+      light = glm::vec3(0.f, 50.f, 20.f);
       Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl");
       Shader rendertex_shader("shaders/vertex.glsl", "shaders/fragment_rendertex.glsl");
       load_foreground();
@@ -132,6 +132,7 @@ private:
   }
 
   void mainloop(old::Model & ground, std::vector<Model> & foreground, Shader & shader, Shader & rendertex_shader) {
+   glm::vec3 savecam;
     while(!glfwWindowShouldClose(window)) {
       register_input(GLFW_KEY_ESCAPE, GLFW_PRESS,
         [] (GLFWwindow * window) {
@@ -142,6 +143,9 @@ private:
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glDisable(GL_DEPTH_TEST);
       rendertex_shader.use();
+      savecam = camera;
+      camera = light;
+      view = defaultViewMatrix();
       
       drawModels(foreground, rendertex_shader);
       
@@ -152,6 +156,8 @@ private:
       glActiveTexture(GL_TEXTURE0);
       shader.setInt("framebuf", 0);
       glBindTexture(GL_TEXTURE_2D, framebuf->getRenderTex());
+      camera = savecam;
+      view = defaultViewMatrix();
 
       shader.setInt("ground", 1);
       setUniforms(shader);
@@ -159,7 +165,7 @@ private:
       glDrawElements(GL_TRIANGLES, ground.indices.size(), GL_UNSIGNED_INT, 0);
       glBindVertexArray(0);
 
-      //drawModels(foreground, shader);
+      drawModels(foreground, shader);
 
       glfwSwapBuffers(window);
       glfwPollEvents();
